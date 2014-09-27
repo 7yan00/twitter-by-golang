@@ -77,7 +77,7 @@ func loading() {
 func get_timeline() {
 
 	response, err := c.Get(
-		"https://api.twitter.com/1.1/statuses/mentions_timeline.json",
+		"https://userstream.twitter.com/1.1/statuses/home_timeline.json",
 		map[string]string{},
 		accessToken)
 	if err != nil {
