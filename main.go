@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/mrjones/oauth"
 	"log"
-	"os"
 )
 
 type user struct {
@@ -31,14 +30,26 @@ var consumerSecret *string = flag.String(
 	"Consumer Secret from Twitter. See: https://dev.twitter.com/apps/new")
 
 var accessToken *oauth.AccessToken
+var selected_Command int
 
 func main() {
 	flag.Parse()
-	fmt.Println("loading consumerkey......")
 	loading()
-	get_timeline()
-
-}
+	fmt.Println("please select next action")
+	
+	for {
+	fmt.Println("(1)tweet (2)loadingtimeline (3)updatename ")
+	selected_Command = 0
+	fmt.Scanln(&selected_Command)
+	switch selected_Command {
+	case 1:
+	 post_tweet()
+	case 2:
+	 get_timeline()
+	case 3:
+	 post_name()
+		}}
+	}
 
 var c = oauth.NewConsumer(
 	*consumerKey,
@@ -51,18 +62,11 @@ var c = oauth.NewConsumer(
 
 func loading() {
 
-	if len(*consumerKey) == 0 || len(*consumerSecret) == 0 {
-		fmt.Println("You must set the --consumerkey and --consumersecret flags.")
-		fmt.Println("---")
-		os.Exit(1)
-	}
-
 	requestToken, url, err := c.GetRequestTokenAndUrl("oob")
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("(1) Go to: " + url)
-	fmt.Println("(2) Grant access, you should get back a verification code.")
 	fmt.Println("(3) Enter that verification code here: ")
 	verificationCode := ""
 	fmt.Scanln(&verificationCode)
@@ -77,7 +81,7 @@ func loading() {
 func get_timeline() {
 
 	response, err := c.Get(
-		"https://userstream.twitter.com/1.1/statuses/home_timeline.json",
+		"https://api.twitter.com/1.1/statuses/home_timeline.json",
 		map[string]string{},
 		accessToken)
 	if err != nil {
@@ -91,4 +95,36 @@ func get_timeline() {
 		fmt.Printf("@%v: %v\n", s.User.ScreenName, s.Text)
 
 	}
+}
+
+func post_name() {
+
+	fmt.Println("write here your newname!")
+	newname := ""
+	fmt.Scanln(&newname)
+	response, err := c.Post("https://api.twitter.com/1.1/account/update_profile.json",
+		map[string]string{"name": newname}, accessToken)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer response.Body.Close()
+
+	fmt.Println("name posted!!")
+	
+}
+
+func post_tweet() {
+
+	fmt.Println("write here your newtweet!")
+	newtweet := ""
+	fmt.Scanln(&newtweet)
+	response, err := c.Post("https://api.twitter.com/1.1/statuses/update.json",
+		map[string]string{"status": newtweet}, accessToken)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer response.Body.Close()
+
+	fmt.Println("tweeted!!")
+
 }
